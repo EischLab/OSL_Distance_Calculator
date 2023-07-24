@@ -1,0 +1,145 @@
+import csv
+import math
+import tkinter as tk
+from tkinter import simpledialog
+from tkinter import filedialog
+import matplotlib.pyplot as plt
+import numpy as np
+
+
+
+def read_selected_data(csv_file, selected_rows, selected_columns):
+    data = []
+
+    with open(csv_file, 'r') as file:
+        reader = csv.DictReader(file)
+        for i, row in enumerate(reader):
+             if i not in selected_rows:
+                row_data = [row[column] for column in selected_columns]
+                data.append(row_data)
+    
+    return data
+
+def write_data_to_textfile(data, output_file):
+    with open(output_file, 'w') as file:
+        for row in data:
+            file.write('\t'.join(row) + '\n')
+
+# Example usage
+# Manually input CSV file path
+root = tk.Tk()
+root.withdraw()
+csv_file = filedialog.askopenfilename(title="Select CSV File")
+#csv_file = '/Users/primalkarma/Desktop/MouseTestTrialData.csv'  # Replace with your CSV file path
+
+# Change the values in cell E1 and F1 to "CenterX" and "CenterY"
+with open(csv_file, 'r') as file:
+    lines = file.readlines()
+
+lines[0] = lines[0].replace(lines[0].split(',')[4], "CenterX")
+lines[0] = lines[0].replace(lines[0].split(',')[5], "CenterY")
+
+with open(csv_file, 'w') as file:
+    file.writelines(lines)
+selected_rows = [0, 1]  # Replace with the row indices to select (0-based)
+selected_columns = ['CenterX', 'CenterY']  # Replace with the column names to select
+
+selected_data = read_selected_data(csv_file, selected_rows, selected_columns)
+#for row in selected_data:
+    #print(row)
+
+output_file = 'output.txt'  # Replace with the desired output file name
+
+selected_data = read_selected_data(csv_file, selected_rows, selected_columns)
+write_data_to_textfile(selected_data, output_file)
+
+# Distance Calculator ---------------------------------------------------------------------------
+def calculate_distance(point1, point2):
+    x1, y1 = point1
+    x2, y2 = point2
+    return math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+
+def calculate_total_distance(coordinates):
+    total_distance = 0
+    for i in range(1, len(coordinates)):
+        distance = calculate_distance(coordinates[i-1], coordinates[i])
+        total_distance += distance
+    return total_distance
+
+# Conversion factor from screen units to centimeters
+#conversion_factor_Cm= 1/31  # Replace with your specific conversion factor
+
+# Read data from output.txt file
+coordinates = []
+excluded_rows = 0  # Initialize excluded rows count
+excluded_rows = []  # Initialize excluded rows list
+
+with open('output.txt', 'r') as file:
+    prev_point = None
+    for i, line in enumerate(file):
+        
+        x, y = line.strip().split('\t')
+        coordinates.append((float(x), float(y)))
+        x = float(x)
+        y = float(y)
+        point = (x, y)
+        
+        if prev_point is not None:
+            if abs(point[0] - prev_point[0]) > 70 or abs(point[1] - prev_point[1]) > 70:
+                excluded_rows.append(i+1)  # Store excluded row index
+                #excluded_rows += 1  # Increment excluded rows count
+                prev_point = None
+                continue
+
+        
+        coordinates.append(point)
+
+        prev_point = point
+        
+        
+        #previous_point = point
+
+# Manually input conversion factor
+root = tk.Tk()
+root.withdraw()
+conversion_factor_Cm = simpledialog.askfloat("Conversion Factor", "Enter the conversion factor from screen units to centimeters:")
+
+# Apply conversion factor to coordinates
+#converted_coordinates = [(x * conversion_factor, y * conversion_factor) for x, y in coordinates]
+total_distance = calculate_total_distance(coordinates)
+total_distance_inCentimeters = total_distance * conversion_factor_Cm
+total_distance_inInches = total_distance_inCentimeters/2.54
+
+#Print Values
+print("Total distance traveled in centimeters is", total_distance_inCentimeters)
+print("Total distance traveled in inches is", total_distance_inInches )
+print("Number of excluded rows:", len(excluded_rows))
+print("Number of the excluded rows:", excluded_rows)
+
+#TO PLOT ON GRID
+# Read data from output.txt file
+x_coords = []
+y_coords = []
+with open('output.txt', 'r') as file:
+    next(file)  # Skip the header row
+    for line in file:
+        x, y = line.strip().split('\t')
+        x_coords.append(float(x))
+        y_coords.append(float(y))
+# Create a colormap based on the number of coordinates
+num_points = len(x_coords)
+colormap = plt.cm.get_cmap('Blues', num_points)
+# Plot the line connecting the coordinates
+plt.plot(x_coords, y_coords, 'b-')  # 'b-' indicates a blue line
+# Add a red circle for the start point
+plt.scatter(x_coords[0], y_coords[0], color='red', marker='o', s=100, label='Start')  
+# Add a dark purple circle for the end point
+plt.scatter(x_coords[-1], y_coords[-1], color='purple', marker='o', s=100, label='End')
+plt.xlabel('X')
+plt.ylabel('Y')
+plt.title('Visual Recreation of Pathway of the Mouse')
+plt.xticks([])  # Remove tick labels on the x-axis
+plt.yticks([])  # Remove tick labels on the y-axis
+plt.legend()
+plt.grid(True)
+plt.show()
