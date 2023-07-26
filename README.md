@@ -1,5 +1,5 @@
 # OSL_Distance_Calculator
-Calculates distance traveled in OSL chamber as well as plotting the pathway on a graph. 
+Calculates distance traveled by the mouse in the OSL chamber as well as plotting the pathway on a graph. 
 
 Download the file/copy paste the file onto a python program reader (I like Visual Code Studio, but I am sure other source-code editors will be feasible) 
 
