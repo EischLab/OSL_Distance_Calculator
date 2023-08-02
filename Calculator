@@ -4,6 +4,7 @@ import tkinter as tk
 from tkinter import simpledialog
 from tkinter import filedialog
 import matplotlib.pyplot as plt
+import os
 
 def read_selected_data(csv_file, selected_rows, selected_columns):
     data = []
@@ -34,6 +35,9 @@ def calculate_total_distance(coordinates):
 root = tk.Tk()
 root.withdraw()
 csv_file = filedialog.askopenfilename(title="Select CSV File")
+
+# Extract the title of the CSV file before "__MDLC_resnet50_OSL Red Light Jul28shuffle1_35000"
+file_title = os.path.basename(csv_file).split("_MDLC_resnet50_OSL Red Light Jul28shuffle1_35000")[0]
 
 # Replace column names in the header row
 header_row_updated = None
@@ -77,21 +81,23 @@ for i, (x, y) in enumerate(selected_data):
     else:
         excluded_rows.append(i + 1)  # Store excluded row index
 
-prev_point = None
-for i, (x, y) in enumerate(coordinates):
-    if prev_point is not None:
-        if abs(x - prev_point[0]) > 70 or abs(y - prev_point[1]) > 70:
-            excluded_rows.append(i + 1)  # Store excluded row index
-            prev_point = None
-            continue
+# Apply outlier filtering
+coordinates_filtered = [coordinates[0]]  # Start with the first point
 
-    prev_point = (x, y)
+threshold_distance = 70  # Set your desired threshold value
+
+for i in range(1, len(coordinates)):
+    prev_x, prev_y = coordinates_filtered[-1]
+    x, y = coordinates[i]
+    distance = calculate_distance((prev_x, prev_y), (x, y))
+    if distance <= threshold_distance:
+        coordinates_filtered.append((x, y))
 
 # Manually input conversion factor
 conversion_factor_Cm = simpledialog.askfloat("Conversion Factor", "Enter the conversion factor from screen units to centimeters:")
 
 # Apply conversion factor to coordinates
-total_distance = calculate_total_distance(coordinates)
+total_distance = calculate_total_distance(coordinates_filtered)
 total_distance_inCentimeters = total_distance * conversion_factor_Cm
 total_distance_inInches = total_distance_inCentimeters/2.54
 
@@ -103,12 +109,8 @@ print("Number of the excluded rows:", excluded_rows)
 
 # TO PLOT ON GRID
 # Read data from the selected data
-x_coords = [x for x, y in coordinates]
-y_coords = [y for x, y in coordinates]
-
-# Create a colormap based on the number of coordinates
-num_points = len(x_coords)
-colormap = plt.cm.get_cmap('Blues', num_points)
+x_coords = [x for x, y in coordinates_filtered]
+y_coords = [y for x, y in coordinates_filtered]
 
 # Plot the line connecting the coordinates
 plt.plot(x_coords, y_coords, 'b-')  # 'b-' indicates a blue line
@@ -121,7 +123,7 @@ plt.scatter(x_coords[-1], y_coords[-1], color='purple', marker='o', s=100, label
 
 plt.xlabel('X')
 plt.ylabel('Y')
-plt.title('Visual Recreation of Pathway of the Mouse')
+plt.title(f'Visual Recreation of Pathway of the Mouse - {file_title}')
 plt.xticks([])  # Remove tick labels on the x-axis
 plt.yticks([])  # Remove tick labels on the y-axis
 plt.legend()
