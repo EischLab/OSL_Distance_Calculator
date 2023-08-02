@@ -1,8 +1,7 @@
 import csv
 import math
 import tkinter as tk
-from tkinter import simpledialog
-from tkinter import filedialog
+from tkinter import simpledialog, filedialog, messagebox
 import matplotlib.pyplot as plt
 import os
 
@@ -99,13 +98,13 @@ conversion_factor_Cm = simpledialog.askfloat("Conversion Factor", "Enter the con
 # Apply conversion factor to coordinates
 total_distance = calculate_total_distance(coordinates_filtered)
 total_distance_inCentimeters = total_distance * conversion_factor_Cm
-total_distance_inInches = total_distance_inCentimeters/2.54
+total_distance_inInches = total_distance_inCentimeters / 2.54
 
-# Print Values
-print("Total distance traveled in centimeters is", total_distance_inCentimeters)
-print("Total distance traveled in inches is", total_distance_inInches)
-print("Number of excluded rows:", len(excluded_rows))
-print("Number of the excluded rows:", excluded_rows)
+# Manually input the title for the plot
+plot_title = simpledialog.askstring("Plot Title", "Enter the Mouse_ID for the plot:")
+
+# Update the plot title with the user's provided answer
+updated_plot_title = f"Mouse {plot_title} Pathway Visualization"
 
 # TO PLOT ON GRID
 # Read data from the selected data
@@ -123,9 +122,24 @@ plt.scatter(x_coords[-1], y_coords[-1], color='purple', marker='o', s=100, label
 
 plt.xlabel('X')
 plt.ylabel('Y')
-plt.title(f'Visual Recreation of Pathway of the Mouse - {file_title}')
+plt.title(updated_plot_title)  # Use the updated title for the plot
 plt.xticks([])  # Remove tick labels on the x-axis
 plt.yticks([])  # Remove tick labels on the y-axis
 plt.legend()
 plt.grid(True)
 plt.show()
+
+# Ask if the user wants to save the plot as a JPG file
+save_plot = messagebox.askyesno("Save Plot", "Do you want to save the plot as a JPG file?")
+
+if save_plot:
+    # Manually input the file name for the JPG
+    jpg_file_name = filedialog.asksaveasfilename(title="Save Plot as JPG", defaultextension=".jpg", filetypes=[("JPEG Image", "*.jpg")])
+    
+    if jpg_file_name:
+        # Save the plot as a JPG file
+        plt.savefig(jpg_file_name, format='jpg')
+        print(f"The plot has been saved as '{jpg_file_name}'.")
+
+# Close the plot to free up resources
+plt.close()
