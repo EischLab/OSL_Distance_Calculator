@@ -58,7 +58,6 @@ if header_row_updated:
         file.write(content)
 
 # Close the file before extracting selected data
-file.close()
 
 selected_rows = [0, 1]  # Replace with the row indices to select (0-based)
 selected_columns = ['CenterX', 'CenterY']  # Replace with the column names to select
@@ -92,11 +91,14 @@ for i in range(1, len(coordinates)):
     if distance <= threshold_distance:
         coordinates_filtered.append((x, y))
 
+# Reflect the coordinates twice across the x-axis
+coordinates_reflected = [(x, -y) for x, y in coordinates_filtered]
+
 # Manually input conversion factor
 conversion_factor_Cm = simpledialog.askfloat("Conversion Factor", "Enter the conversion factor from inches to screen units:")
 
 # Apply conversion factor to coordinates
-total_distance = calculate_total_distance(coordinates_filtered)
+total_distance = calculate_total_distance(coordinates_reflected)
 total_distance_inCentimeters = total_distance * conversion_factor_Cm
 total_distance_inInches = total_distance_inCentimeters / 2.54
 
@@ -108,10 +110,14 @@ updated_plot_title = f"Mouse '{plot_title}' Pathway Visualization\nTotal distanc
 
 # TO PLOT ON GRID
 # Read data from the selected data
-x_coords = [x for x, y in coordinates_filtered]
-y_coords = [y for x, y in coordinates_filtered]
+x_coords = [x for x, y in coordinates_reflected]
+y_coords = [y for x, y in coordinates_reflected]
 
-# Plot the line connecting the coordinates
+# Set the x-axis and y-axis limits
+plt.xlim(0, 1280)
+plt.ylim(-720, 0)  # Adjust the y-axis limit to reflect the plot
+
+# Plot the line connecting the coordinates with reflection
 plt.plot(x_coords, y_coords, 'b-')  # 'b-' indicates a blue line
 
 # Add a red circle for the start point
@@ -128,22 +134,13 @@ plt.yticks([])  # Remove tick labels on the y-axis
 plt.legend()
 plt.grid(True)
 
-# Show the plot
+# Show the reflected plot
 plt.show()
-
-# Ask if the user wants to save the plot as a JPG file
-save_plot = messagebox.askyesno("Save Plot", "Do you want to save the plot as a JPG file?")
-
-if save_plot:
-    # Manually input the file name for the JPG
-    jpg_file_name = filedialog.asksaveasfilename(title="Save Plot as JPG", defaultextension=".jpg", filetypes=[("JPEG Image", "*.jpg")])
-    
-    if jpg_file_name:
-        # Save the plot as a JPG file
-        plt.savefig(jpg_file_name, format='jpg')
-        print(f"The plot has been saved as '{jpg_file_name}'.")
 
 # Close the plot to free up resources
 plt.close()
+
+# ... (Keep the rest of the code as it was)
+
 
 
