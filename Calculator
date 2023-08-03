@@ -93,7 +93,7 @@ for i in range(1, len(coordinates)):
         coordinates_filtered.append((x, y))
 
 # Manually input conversion factor
-conversion_factor_Cm = simpledialog.askfloat("Conversion Factor", "Enter the conversion factor from screen units to centimeters:")
+conversion_factor_Cm = simpledialog.askfloat("Conversion Factor", "Enter the conversion factor from inches to screen units:")
 
 # Apply conversion factor to coordinates
 total_distance = calculate_total_distance(coordinates_filtered)
@@ -101,10 +101,10 @@ total_distance_inCentimeters = total_distance * conversion_factor_Cm
 total_distance_inInches = total_distance_inCentimeters / 2.54
 
 # Manually input the title for the plot
-plot_title = simpledialog.askstring("Plot Title", "Enter the Mouse_ID for the plot:")
+plot_title = simpledialog.askstring("Plot Title", "Enter the title for the plot:")
 
-# Update the plot title with the user's provided answer
-updated_plot_title = f"Mouse {plot_title} Pathway Visualization"
+# Update the plot title with the user's provided answer and total distance traveled
+updated_plot_title = f"Mouse '{plot_title}' Pathway Visualization\nTotal distance: {total_distance_inCentimeters:.2f} cm ({total_distance_inInches:.2f} inches)"
 
 # TO PLOT ON GRID
 # Read data from the selected data
@@ -127,6 +127,8 @@ plt.xticks([])  # Remove tick labels on the x-axis
 plt.yticks([])  # Remove tick labels on the y-axis
 plt.legend()
 plt.grid(True)
+
+# Show the plot
 plt.show()
 
 # Ask if the user wants to save the plot as a JPG file
@@ -143,3 +145,5 @@ if save_plot:
 
 # Close the plot to free up resources
 plt.close()
+
+
